@@ -13,6 +13,8 @@ library(data.table)
 library(ngram)
 library(gutenbergr)
 library(tidytext)
+library(stringr)
+library(RColorBrewer)
 ```
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
@@ -36,7 +38,7 @@ In this game, players escape to a deserted island where they beomce indebted to 
 
 As you might have figured out by now, this blog will be focusing on Animal Crossing data!
 
-The data set we foung on Tidy Tuesday has 4 differnt sets within it: Items, Villagers, Critic reviews, and User reviews. In this blog we wil breaking up into differnt sections to explore each data set to answer some questions we may have and what we can discover from these datasets.
+The data set we foung on Tidy Tuesday has 4 different sets within it: Items, Villagers, Critic reviews, and User reviews. In this blog we wil breaking up into different sections to explore each data set to answer some questions we may have and what we can discover from these datasets.
 
 Let's start of with the items data!
 
@@ -45,17 +47,47 @@ Let's start of with the items data!
 While looking over the items data set, we noticed that there are some duplicates of each item. So before we start working with the data, lets do some tidying up!
 
 ### Mini Tidy Data Tutorial
-In Animal Crossing, ther are many differnet items in the game. But for the purpose of this blog and to make our lives easier, we will be focusing on the items that are categorized as furniture. 
+In Animal Crossing, there are many different items in the game. But for the purpose of this blog and to make our lives easier, we will be focusing on the items that are categorized as furniture. 
 
-Here we will filter out the table to focus on furniture:
+Here we will filter out the table to focus on furniture sets:
 ```{r}
-furniture_items = items %>%
+cheap_furniture_items = items %>%
   filter(category == "Furniture") %>%
-  select(num_id, id, name, sell_value, buy_value)
+  select(num_id, id, name, sell_value, buy_value) %>%
+  mutate(furniture_set = str_extract(id, ".*?-")) %>%
+  mutate(furniture_set = gsub("-", "", furniture_set)) %>%
+  group_by(furniture_set) %>%
+  summarize(mean_buy_value = mean(buy_value, na.rm = TRUE)) %>%
+  arrange(desc(mean_buy_value)) %>% 
+  top_n(-5, mean_buy_value)
 
-#next use mutate to create a new column for the furniture_set and extract it from the part of the id before the - (use regex)
+expensive_furniture_items = items %>%
+  filter(category == "Furniture") %>%
+  select(num_id, id, name, sell_value, buy_value) %>%
+  mutate(furniture_set = str_extract(id, ".*?-")) %>%
+  mutate(furniture_set = gsub("-", "", furniture_set)) %>%
+  group_by(furniture_set) %>%
+  summarize(mean_buy_value = mean(buy_value, na.rm = TRUE)) %>%
+  arrange(desc(mean_buy_value)) %>% 
+  top_n(5, mean_buy_value)
 
-furniture_items
+View(cheap_furniture_items)
+View(expensive_furniture_items)
+
+mycolors = c(brewer.pal(name="Accent", n = 3), brewer.pal(name="Dark2", n = 8), brewer.pal(name="Set2", n = 7))
+             
+ggplot(data = expensive_furniture_items, aes(x = fct_reorder(furniture_set, mean_buy_value), y = mean_buy_value)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "5 Most Expensive Furniture Sets in Animal Crossing", x = "Furniture Set", y ="Average Buy Value") +
+  scale_color_manual(values = mycolors)
+
+ggplot(data = cheap_furniture_items, aes(x = fct_reorder(furniture_set, mean_buy_value), y = mean_buy_value)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "5 Cheapest Furniture Sets in Animal Crossing", x = "Furniture Set", y ="Average Buy Value") +
+  scale_color_manual(values = mycolors)
+
 ```
 
 Now let's move on to the villager data!

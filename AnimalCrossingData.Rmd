@@ -3,14 +3,29 @@ title: "Animal Crossing Data"
 output: html_document
 ---
 
+<<<<<<< HEAD
 ```{r, warning = FALSE, message = FALSE}
 # Load any R Packages you may need
 library(tidyverse)
+=======
+```{r, message=FALSE}
+#Loading needed packages
+library(mdsr)
+library(tidyverse)
+library(gapminder)
+>>>>>>> 0e6558bd143bf5a345394272797592c15d438133
 library(data.table)
 library(ngram)
 library(gutenbergr)
 library(tidytext)
 ```
+<<<<<<< HEAD
+=======
+
+
+```{r, message=FALSE, warning= FALSE}
+#Load datasets
+>>>>>>> 0e6558bd143bf5a345394272797592c15d438133
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 critic <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/critic.tsv')
@@ -26,6 +41,7 @@ View(items)
 View(villagers)
 ```
 
+<<<<<<< HEAD
 Items
 Mini tidy data tutorial
 Furniture sets and find out the costs of each set (mutate, regex, groupby, summarize, count)
@@ -70,3 +86,88 @@ sentiment_counts %>%
 ```
 
 
+=======
+*Villagers*
+**Question: Are there more of a certain type of personality or is it evenly distributed?**
+```{r}
+
+villagers %>% 
+  count(personality) %>% 
+  arrange(desc(n))
+
+```
+
+Based of the new table, it looks like there doesn't seem to be an even distribution of personalities. Let's take a look at a graph:
+
+**Creating a graph to show the distribuition of personalities**
+```{r}
+villagers %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality,n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 4, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+```
+
+According to the graph, it looks like the most common personality trait is lazy and the least common personality trait is uchi (uchi is a female villager personality. Ther are very caring and not too vain towards the villagers).
+
+**Question: What is the distribution of personalities amongst differnt types of animals?**
+
+First let's take a look at the distribution of species:
+```{r}
+villagers %>% 
+  count(species) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(species,n), y = n))+
+  geom_col(aes(fill = species), alpha = 0.6)+
+  labs(x = "Species", y = "Number of Villagers")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+
+```
+
+It seems the 5 most common animals are: cats, rabbits, squirrels, frogs, and ducks.
+Let's take a look into the personality districution of the most popular animal: cats!
+
+```{r}
+villagers_cats = villagers %>% 
+  filter(species == "cat") %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Cat Villagers")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+
+villagers_cats
+  
+```
+
+Now let's take a look at the other animals: rabbits, squirrels, frogs, and ducks!
+```{r}
+villagers_most_common = villagers %>% 
+  filter(species %in% c("rabbit","squirrel","frog","duck")) %>% 
+  group_by(species) %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 2.5, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()+
+  facet_wrap(~species)
+
+villagers_most_common
+```
+
+It looks like the type of personality each villager has based off of what type of aniaml they are is completly random.
+>>>>>>> 0e6558bd143bf5a345394272797592c15d438133

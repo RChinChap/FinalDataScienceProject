@@ -3,17 +3,70 @@ title: "Animal Crossing Data"
 output: html_document
 ---
 
-```{r}
-#Load datasets
+```{r, warning = FALSE, message = FALSE}
+# Load any R Packages you may need
+library(tidyverse)
+library(data.table)
+library(ngram)
+library(gutenbergr)
+library(tidytext)
+```
 
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 critic <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/critic.tsv')
 user_reviews <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/user_reviews.tsv')
 items <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/items.csv')
 villagers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/villagers.csv')
+```
 
+```{r}
 View(critic)
 View(user_reviews)
 View(items)
 View(villagers)
 ```
+
+Items
+Mini tidy data tutorial
+Furniture sets and find out the costs of each set (mutate, regex, groupby, summarize, count)
+
+```{r}
+furniture_items = items %>%
+  filter(category == "Furniture") %>%
+  select(num_id, id, name, sell_value, buy_value)
+//next use mutate to create a new column for the furniture_set and extract it from the part of the id before the - (use regex)
+
+furniture_items
+```
+
+
+Critic and user review
+With the critic and user reviews, we can do something similar to one of the homework assignments that we did in which we had to analyze some text data and whether they were negative or positive. We can use that to detect negative or positive reviews. 
+We can also use the user reviews (0-10) and critic ratings to find the average rating(0-100)
+
+```{r}
+critic_reviews_tidy = critic %>%
+  unnest_tokens(output = word, input = text)
+
+critic_sentiment = critic_reviews_tidy %>%
+  inner_join(get_sentiments("bing"), by = c("word" = "word"))
+
+critic_sentiment
+
+sentiment_counts = critic_sentiment %>%
+  count(word, sentiment, sort = TRUE)
+sentiment_counts %>%
+  group_by(sentiment) %>%
+  top_n(10, wt = n) %>%
+  ggplot(aes(x = fct_reorder(word, n), y = n, 
+             fill = sentiment)) + 
+  geom_col() + 
+  facet_wrap( ~ sentiment, scales = "free_y") + 
+  labs(x = "", y = "Contribution to sentiment", 
+       title = "Sentiment Analysis of Critic Reviews of Animal Crossing") +
+  theme_bw() + 
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
 

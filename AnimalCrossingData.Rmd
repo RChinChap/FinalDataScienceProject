@@ -3,7 +3,7 @@ title: "Animal Crossing Data"
 output: html_document
 ---
 
-```{r, warning = FALSE, message = FALSE}
+```{r,echo=FALSE, warning = FALSE, message = FALSE}
 # Load any R Packages you may need
 library(tidyverse)
 library(mdsr)
@@ -29,6 +29,8 @@ View(items)
 View(villagers)
 ```
 
+# Escaping the Real World to Run Errands in a Virtual Game
+
 With the world currently in quarantine, many people are finding a way to kill time with Nintendo's latest release: "Animal Crossing: New Horizons"!
 In this game, players escape to a deserted island where they beomce indebted to Tom Nook, a tanuki capitalist overlord who holds all of your mortgages. It is up to the player to run errand and to collect items such as fruits, insects and fish to sell to the tanuki in hopes of ever repaying their debt and earning new upgrades to make the island more beautful. In this game, you are in control of the isalnd and have the ability to design and decorate it in any way you like! You can also socialize with villagers who can give you new crafting recipes and gifts if you befriend them, or you can be mean an force them to leave the island if you dont like their personality.
 
@@ -38,11 +40,11 @@ The data set we foung on Tidy Tuesday has 4 differnt sets within it: Items, Vill
 
 Let's start of with the items data!
 
-*Items*
+## Items
 
 While looking over the items data set, we noticed that there are some duplicates of each item. So before we start working with the data, lets do some tidying up!
 
-**Mini tidy data tutorial**
+### Mini Tidy Data Tutorial
 In Animal Crossing, ther are many differnet items in the game. But for the purpose of this blog and to make our lives easier, we will be focusing on the items that are categorized as furniture. 
 
 Here we will filter out the table to focus on furniture:
@@ -58,7 +60,8 @@ furniture_items
 
 Now let's move on to the villager data!
 
-*Villagers*
+## Villagers
+
 **Question: Are there more of a certain type of personality or is it evenly distributed?**
 ```{r}
 
@@ -145,10 +148,10 @@ It looks like the type of personality each villager has based off of what type o
 
 Since many people are playing Animal Crossing, ,lets take a look to see what their opionons are and compare them to what critics think.
 
-*Critic and user reviews*
+## Critic and User Reviews
 
-With the critic and user reviews, we can do something similar to one of the homework assignments that we did in which we had to analyze some text data and whether they were negative or positive. We can use that to detect negative or positive reviews. 
-We can also use the user reviews (0-10) and critic ratings to find the average rating(0-100)
+With the critic and user reviews, we can analyze some text data via sentiment analysis to determine whether a review was positive or negative. 
+We can also use the user reviews (0-10) and critic ratings (0-100) to find the average rating.
 
 ```{r}
 critic_reviews_tidy = critic %>%

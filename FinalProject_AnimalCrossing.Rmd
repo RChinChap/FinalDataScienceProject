@@ -1,0 +1,334 @@
+---
+title: "Animal Crossing Data"
+output: html_document
+---
+
+```{r,echo=FALSE, warning = FALSE, message = FALSE}
+# Load any R Packages you may need
+library(tidyverse)
+library(mdsr)
+library(tidyverse)
+library(gapminder)
+library(data.table)
+library(ngram)
+library(gutenbergr)
+library(tidytext)
+library(stringr)
+library(RColorBrewer)
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+critic <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/critic.tsv')
+user_reviews <- readr::read_tsv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/user_reviews.tsv')
+items <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/items.csv')
+villagers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-05/villagers.csv')
+```
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+View(critic)
+View(user_reviews)
+View(items)
+View(villagers)
+```
+
+# Escaping the Real World to Run Errands in a Virtual Game
+
+With the world currently in quarantine, many people are finding a way to kill time with Nintendo's latest release: "Animal Crossing: New Horizons"!
+In this game, players escape to a deserted island where they become indebted to Tom Nook, a tanuki capitalist overlord who holds all of your mortgages. It is up to the player to run errands and to collect items such as fruits, insects and fish to sell to the tanuki in hopes of ever repaying their debt and earning new upgrades to make the island more beautiful. In this game, you are in control of the isalnd and have the ability to design and decorate it in any way you like! You can also socialize with villagers who can give you new crafting recipes (to make cool furniture or items for your house or for the island) and gifts if you befriend them, or you can be mean and force them to leave the island if you don't like their personality.
+
+As you might have figured out by now, this blog will be focusing on Animal Crossing data!
+
+The data set we found on TidyTuesday has 4 differnt sets within it: Items, Villagers, Critic reviews, and User reviews. In this blog, we wil breaking up into differnt sections to explore each data set to answer some questions we may have and what we can discover from these datasets.
+
+Let's start of with the items data!
+
+## Items
+
+In Animal Crossing, there are many different items in the game. But for the purpose of this blog and to make our lives easier, we will be focusing on the items that are categorized as furniture. 
+
+Here we will filter out the table to focus on furniture sets and then try to see which furniture sets are the cheapest and most expensive to purchase in the game.
+
+**Cheapest Furniture Sets**
+```{r}
+cheap_furniture_items = items %>%
+  filter(category == "Furniture") %>%
+  select(num_id, id, name, sell_value, buy_value) %>%
+  mutate(furniture_set = str_extract(id, ".*?-")) %>%
+  mutate(furniture_set = gsub("-", "", furniture_set)) %>%
+  group_by(furniture_set) %>%
+  summarize(mean_buy_value = mean(buy_value, na.rm = TRUE)) %>%
+  arrange(desc(mean_buy_value)) %>% 
+  top_n(-5, mean_buy_value)
+
+ggplot(data = cheap_furniture_items, aes(x = fct_reorder(furniture_set, mean_buy_value), y = mean_buy_value)) +
+  geom_col(aes(fill = furniture_set)) +
+  coord_flip() +
+  labs(title = "5 Cheapest Furniture Sets in Animal Crossing", x = "Furniture Set", y ="Average Buy Value")
+
+```
+
+Looks like the average price of an item in the cheapest sets range from 180 to 350 bells! Not too bad for the price, though they probably don't look that good...
+
+**Most Expensive Furniture Sets**
+```{r}
+expensive_furniture_items = items %>%
+  filter(category == "Furniture") %>%
+  select(num_id, id, name, sell_value, buy_value) %>%
+  mutate(furniture_set = str_extract(id, ".*?-")) %>%
+  mutate(furniture_set = gsub("-", "", furniture_set)) %>%
+  group_by(furniture_set) %>%
+  summarize(mean_buy_value = mean(buy_value, na.rm = TRUE)) %>%
+  arrange(desc(mean_buy_value)) %>% 
+  top_n(5, mean_buy_value)
+
+ggplot(data = expensive_furniture_items, aes(x = fct_reorder(furniture_set, mean_buy_value), y = mean_buy_value)) +
+  geom_col(aes(fill = furniture_set)) +
+  coord_flip() +
+  labs(title = "5 Most Expensive Furniture Sets in Animal Crossing", x = "Furniture Set", y ="Average Buy Value")
+```
+
+Wow, it appears as though the most expensive items reach into the millions! As someone who has played Animal Crossing before, I can vouch that you do get what you pay for and that these furniture items are quite *fancy*. 
+
+Now let's move on to the villager data!
+
+## Villagers
+
+Villagers in animal crossing are...animals and there are many different types of animals in the game, 35 differnet species to be exact! Each villager has their own personality which can be categorized into 8 different types (4 female, 4 male): Normal, Peppy, Snooty, Uchi (sisterly), Cranky, Jock, Lazy, and Smug.
+
+Let's take a look and see if the differnt personality types are evenly distributed amongst villagers or if there are more common personalities compared to others.
+
+**Question: Are there more of a certain type of personality or is it evenly distributed?**
+```{r}
+
+villagers %>% 
+  count(personality) %>% 
+  arrange(desc(n))
+
+```
+
+Based off the table, it looks like there doesn't seem to be an even distribution of personalities. Let's take a look at a graph to get a better visualization:
+
+**Creating a graph to show the distribuition of personalities**
+```{r}
+villagers %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality,n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 4, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+```
+
+According to the graph, it looks like the most common personality trait is lazy and the least common personality trait is uchi (uchi is a female villager personality. They are very caring and not too vain towards the villagers).
+
+Another thing to notice from the graph is that it appears as though the distribution  pattern amongst the personalities for male and female are the same. To see this more clearly, let's take a look at the same grapgh but instead have it split betwen male and female:
+
+**female**
+```{r}
+personality_female = villagers %>% 
+  filter(gender == "female") %>% 
+  group_by(gender) %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 2.5, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()+
+  facet_wrap(~gender)
+
+personality_female
+```
+
+**male**
+```{r}
+personality_male = villagers %>% 
+  filter(gender == "male") %>% 
+  group_by(gender) %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 2.5, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()+
+  facet_wrap(~gender)
+
+personality_male
+```
+
+When you look at the two graphs you can see how there is always the most common trait, then 2 common traits which arent that far off (in terms of numbers) from the most common trait, and then the least common trait falls behind by quite a bit.
+
+Therfore it looks like the chances of meeting a lazy male villager or normal female villager are higher than meeting a smug male villager or uchi female villager.
+
+Now let's take a look at how the personalities are distributed in each species of animal:
+
+**Question: What is the distribution of personalities amongst differnt types of animals?**
+
+First let's take a look at the distribution of species:
+```{r}
+villagers %>% 
+  count(species) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(species,n), y = n))+
+  geom_col(aes(fill = species), alpha = 0.6)+
+  labs(x = "Species", y = "Number of Villagers")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+
+```
+
+There are 35 differnt species, and having to look at 35 differnt graphs can be quite hectic, so to make our lives easier let's focus on the top 5 animals. The 5 most common animals are: cats, rabbits, squirrels, frogs, and ducks.
+
+First let's take a look into the personality distribution of the most popular animal: cats!
+
+**Cat Personality**
+```{r}
+villagers_cats = villagers %>% 
+  filter(species == "cat") %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Cat Villagers")+
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()
+
+villagers_cats
+  
+```
+
+Intersting, it seems as though the personality types within the cats is not evenly distributed. Looks like the most common personality trait of cats is snooty and peppy and the lease common traits are the smug and uchi personalities. I wonder if this is the same for the other animals?
+
+Now let's take a look at the others:
+```{r}
+villagers_most_common = villagers %>% 
+  filter(species %in% c("rabbit","squirrel","frog","duck")) %>% 
+  group_by(species) %>% 
+  count(personality) %>% 
+  arrange(desc(n)) %>% 
+  ggplot(aes(x = fct_reorder(personality, n), y = n))+
+  geom_col(aes(fill = personality), alpha = 0.6)+
+  labs(x = "Personality", y = "Number of Villagers")+
+  geom_label(aes(label = n), size = 2.5, nudge_y = 7) +
+  theme_minimal()+
+  theme(legend.position = "none")+
+  coord_flip()+
+  facet_wrap(~species)
+
+villagers_most_common
+```
+
+Based off of these graphs, it looks like the type of personality each villager has is based off of what type of animal they are and is either completly random or tries to relate to the sterotype that an animal typically has in real life. For example, the cat sterotype of being more snooty or peppy, or the rabbit sterotype of being more peppy/energetic.
+
+
+## Critic and User Reviews
+
+Since many people are playing Animal Crossing, lets take a look to see what their opinions are and compare them to what critics think.
+
+### Anlayzing the Reviews
+
+With the critic and user reviews, we can analyze some text data via sentiment analysis to determine whether a review was positive or negative. 
+
+**Critic Reviews**
+
+```{r}
+critic_reviews_tidy = critic %>%
+  unnest_tokens(output = word, input = text)
+
+critic_sentiment = critic_reviews_tidy %>%
+  inner_join(get_sentiments("bing"), by = c("word" = "word"))
+
+critic_sentiment
+
+sentiment_counts = critic_sentiment %>%
+  count(word, sentiment, sort = TRUE)
+sentiment_counts %>%
+  group_by(sentiment) %>%
+  top_n(10, wt = n) %>%
+  ggplot(aes(x = fct_reorder(word, n), y = n, 
+             fill = sentiment)) + 
+  geom_col() + 
+  facet_wrap( ~ sentiment, scales = "free_y") + 
+  labs(x = "", y = "Contribution to sentiment", 
+       title = "Sentiment Analysis of Critic Reviews of Animal Crossing") +
+  theme_bw() + 
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
+Based off of these graphs, it appears as though there are a lot of positive reviews from the critics.
+
+**User Reviews**
+```{r}
+user_reviews_tidy = user_reviews %>%
+  unnest_tokens(output = word, input = text)
+
+user_sentiment = user_reviews_tidy %>%
+  inner_join(get_sentiments("bing"), by = c("word" = "word")) 
+
+user_sentiment
+
+sentiment_counts = user_sentiment %>%
+  count(word, sentiment, sort = TRUE)
+sentiment_counts %>%
+  group_by(sentiment) %>%
+  top_n(10, wt = n) %>%
+  ggplot(aes(x = fct_reorder(word, n), y = n, 
+             fill = sentiment)) + 
+  geom_col() + 
+  facet_wrap( ~ sentiment, scales = "free_y") + 
+  labs(x = "", y = "Contribution to sentiment", 
+       title = "Sentiment Analysis of User Reviews of Animal Crossing") +
+  theme_bw() + 
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
+Looking at these grpahs, it also appears as though users have some good things to say about the game but also some more negative things to say compared to the critics.
+
+### Comparing the Ratings
+
+Now that we have a good idea of what kind of reviews the users and critics gave, let's take a look at the actual grades that were given.
+
+**Average User Rating**
+
+Here are the average user ratings based on a score out of 10:
+```{r}
+user_reviews %>% 
+  summarize(mean_rating = mean(grade, na.rm = TRUE))
+```
+
+Hmm, it appears as though some people are not too happy about the game despite the positive reviews, let's take a look as to why that may be later. For now, let's see how the critics rated the game.
+
+**Average Critic Rating**
+
+Here are the average critic ratings based on a score out of 100:
+```{r}
+critic %>% 
+  summarize(mean_rating = mean(grade, na.rm = TRUE))
+```
+
+Now that seems more like it! Looks like the critics gave a far better rating to the game compared to users.
+
+**Comparing the Ratings**
+
+It appears as though users are not too happy with the game compared to the critics. To put them on the same scale, user ratings would be an average of 42/100 while critic ratings are 90.6/100. Despite the positive sentiment that appears in the user reviews, it has a lower score. A good explanation of that would be the wave of new players to the game. While reviewing the comments, many of them complain about the one island per console situation. For those who don't know, animal crossing is meant to be a single player game in which there is only one world per console/device. Anyone who would want to make another account would have to share the same island or if you wanted to own your own island you would need another device. This has always been the way of Animal Crosing and old players of the game (who have played older versions of Animal Crossing) already know this. However, due to the hype that Animal Crossing: New Horizons recieved, it attracted a lot of new players (especially during the pandemic). Unfortunatley, new players learned the hard way that they can only have one island per console and a lot of people, especially parents, are not happy with that... but it is what it is. 
+*Animal Crossing is a great game, some people are just salty*
+
+## Final Thoughts
+
+Animal Crossing: New Horizons is a step up from any other edition of the game by far. In this edition, players have the ability to terraform and shpape the island in any way that they want, they have access to more furniture, can craft custom recipes for items, and overall have a lot of freedom to do what they want! With that said, these data sets are a sample of what the gameplay is like. As seen from the long list of items and how cheap or expensive furniturei is that players can either buy or sell, or from the long list of diffenent villagers/personalities that players can meet, there is a lot to do in the game!
+
+However, as the reviews show...while critics love the game it appears as though many users do not. The graphs that we created show the positive sentiment in many reviews, but our comparison of the average ratings showed that despite the positive sentiment in user reviews, the average grade says otherwise (The reason for this has already been explained). On the other hand, we showed that there was a lot of positive sentiment in the critic reviews and the grade followed through :).Hopefully, the analysis from this blog made you interseted in playing Animal Crossing but if not, hopefully it kept you a bit interested in the game.
+
+Thanks for reading!

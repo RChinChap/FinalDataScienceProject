@@ -1,5 +1,5 @@
 ---
-title: "Animal Crossing Data"
+title: "Animal Crossing and Crossing Data"
 output: html_document
 ---
 
@@ -111,10 +111,6 @@ Let's take a look and see if the different personality types are evenly distribu
 <<<<<<< HEAD
 
 ```{r,echo=FALSE}
-
-=======
-```{r}
->>>>>>> db6b19ff5ea863f9c6ffec3a91ad4bea47756f89
 villagers %>% 
   count(personality) %>% 
   arrange(desc(n))
@@ -122,14 +118,10 @@ villagers %>%
 
 Based on the table, there doesn't seem to be an even distribution of personalities. Let's take a look at a graph to get a better visualization:
 
-<<<<<<< HEAD
 **Creating a graph to show the distribuition of personalities**
 
 ```{r, echo=FALSE}
-=======
-**Creating a graph to show the distribution of personalities**
-```{r}
->>>>>>> db6b19ff5ea863f9c6ffec3a91ad4bea47756f89
+
 villagers %>% 
   count(personality) %>% 
   arrange(desc(n)) %>% 
@@ -352,17 +344,14 @@ It appears as though users are not too happy with the game compared to the criti
 
 ## Final Thoughts
 
-<<<<<<< HEAD
 <center>
 
 ![Animal Crossing Townhall](/Users/Richney/Downloads/townhall.jpg) 
 
 </center>
 
-Animal Crossing: New Horizons is a step up from any other edition of the game by far. In this edition, players have the ability to terraform and shpape the island in any way that they want, they have access to more furniture, can craft custom recipes for items, and overall have a lot of freedom to do what they want! With that said, these data sets are a sample of what the gameplay is like. As seen from the long list of items and how cheap or expensive furniturei is that players can either buy or sell, or from the long list of diffenent villagers/personalities that players can meet, there is a lot to do in the game!
-=======
 Animal Crossing: New Horizons is a step up from any other edition of the game by far. In this edition, players have the ability to terraform and shape the island in any way that they want, they have access to more furniture, they can craft custom recipes for items, and overall have a lot of freedom to do what they want! With that being said, this dataset is a sample of what the game play is like. As seen from the long list of items and how cheap or expensive furniture is (that players can either buy or sell), or from the long list of different villagers/personalities that players can meet, there is a lot to do in the game!
->>>>>>> db6b19ff5ea863f9c6ffec3a91ad4bea47756f89
+
 
 However, as the reviews show...while critics love the game it appears as though many users do not. The graphs that we created show the positive sentiment in many reviews, but our comparison of the average ratings showed that despite the positive sentiment in user reviews, the average grade says otherwise (the reason for this has already been explained). On the other hand, we showed that there was a lot of positive sentiment in the critic reviews and the average rating followed through :). Hopefully, the analysis from this blog made you interested in playing Animal Crossing, but if not, hopefully it sparked a little bit of joy!
 
